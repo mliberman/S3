@@ -46,6 +46,51 @@ extension S3 {
         
         return promise.futureResult
     }
+
+    func download(
+        from url: URL,
+        method: HTTPMethod,
+        headers: HTTPHeaders,
+        cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy,
+        to destination: URL,
+        on container: Container
+        ) throws -> Future<Response> {
+
+        var request = URLRequest(url: url, cachePolicy: cachePolicy)
+        request.httpMethod = method.string
+        headers.forEach { key, val in
+            request.addValue(val, forHTTPHeaderField: key.description)
+        }
+
+        let promise = container.eventLoop.newPromise(Response.self)
+
+        let task = URLSession.shared.downloadTask(with: request) { (url, urlResponse, error) in
+            if let error = error {
+                promise.fail(error: error)
+                return
+            }
+            guard let url = url else {
+                let error = VaporError(identifier: "url", reason: "URL was nil.")
+                promise.fail(error: error)
+                return
+            }
+            guard let httpResponse = urlResponse as? HTTPURLResponse else {
+                let error = VaporError(identifier: "httpURLResponse", reason: "URLResponse was not a HTTPURLResponse.")
+                promise.fail(error: error)
+                return
+            }
+            do {
+                try FileManager().moveItem(at: url, to: destination)
+                let response = S3.convert(foundationResponse: httpResponse, data: nil, on: container)
+                promise.succeed(result: Response(http: response, using: container))
+            } catch {
+                promise.fail(error: error)
+            }
+        }
+        task.resume()
+
+        return promise.futureResult
+    }
     
     /// Convert given response and data to HTTPResponse from Vapors HTTP package
     static func convert(foundationResponse httpResponse: HTTPURLResponse, data: Data?, on worker: Worker) -> HTTPResponse {

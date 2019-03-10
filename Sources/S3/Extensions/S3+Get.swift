@@ -45,5 +45,19 @@ extension S3 {
     public func get(file: LocationConvertible, on container: Container) throws -> EventLoopFuture<File.Response> {
         return try get(file: file, headers: [:], on: container)
     }
-    
+
+    public func download(
+        file: LocationConvertible,
+        headers: [String: String],
+        to destination: URL,
+        on container: Container
+        ) throws -> Future<URL> {
+
+        let builder = urlBuilder(for: container)
+        let url = try builder.url(file: file)
+
+        let headers = try signer.headers(for: .GET, urlString: url.absoluteString, headers: headers, payload: .none)
+        return try download(from: url, method: .GET, headers: headers, to: destination, on: container)
+            .transform(to: destination)
+    }
 }

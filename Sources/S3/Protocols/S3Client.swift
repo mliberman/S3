@@ -80,7 +80,10 @@ public protocol S3Client: Service {
     
     /// Retrieve file data from S3
     func get(file: LocationConvertible, headers: [String: String], on: Container) throws -> Future<File.Response>
-    
+
+    /// Download file from S3
+    func download(file: LocationConvertible, headers: [String: String], to: URL, on: Container) throws -> Future<URL>
+
     /// Delete file from S3
     func delete(file: LocationConvertible, on: Container) throws -> Future<Void>
     
@@ -92,7 +95,12 @@ public protocol S3Client: Service {
 }
 
 extension S3Client {
-    
+
+    /// Download file from S3
+    func download(file: LocationConvertible, to destination: URL, on container: Container) throws -> Future<URL> {
+        return try self.download(file: file, headers: [:], to: destination, on: container)
+    }
+
     /// Copy file on S3
     public func copy(file: LocationConvertible, to: LocationConvertible, on container: Container) throws -> Future<File.CopyResponse> {
         return try self.copy(file: file, to: to, headers: [:], on: container)
