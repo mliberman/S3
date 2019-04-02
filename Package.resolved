@@ -167,9 +167,9 @@
         "package": "XMLCoding",
         "repositoryURL": "https://github.com/LiveUI/XMLCoding.git",
         "state": {
-          "branch": null,
-          "revision": "8c760e960a5e53a5338c2871c4fcdf06b8c5ace4",
-          "version": "0.4.0"
+          "branch": "master",
+          "revision": "c15479e402abf2373e7fd3ba09e9b3d7ed24c4a4",
+          "version": null
         }
       }
     ]
